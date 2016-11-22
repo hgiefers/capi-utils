@@ -26,22 +26,28 @@ prefix=/usr/local
 
 TARGETS=capi-flash-AlphaData7v3 capi-flash-AlphaDataKU60 capi-flash-AlphaDataKU115 capi-flash-Nallatech
 
+COMMON=src/common.c
+COMMON_OBJS=$(COMMON:.c=.o)
+
 install_files = $(TARGETS) capi-flash-script.sh psl-devices
 
 .PHONY: all 
 all: $(TARGETS)
 
-capi-flash-AlphaData7v3: src/capi_flash_ad7v3ku3_user.c
-	$(CC) $(CFLAGS) $< -o $@
+%.o: %.c
+	$(CC) $(CFLAGS) $< -c -o $@
 
-capi-flash-AlphaDataKU60: src/capi_flash_ad7v3ku3_user.c
-	$(CC) $(CFLAGS) $< -o $@
+capi-flash-AlphaData7v3: $(COMMON_OBJS) src/capi_flash_ad7v3ku3_user.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-capi-flash-AlphaDataKU115: src/capi_flash_adku115_user.c
-	$(CC) $(CFLAGS) $< -o $@
+capi-flash-AlphaDataKU60: $(COMMON_OBJS) src/capi_flash_ad7v3ku3_user.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-capi-flash-Nallatech: src/capi_flash_nallatech_user.c
-	$(CC) $(CFLAGS) $< -o $@
+capi-flash-AlphaDataKU115: $(COMMON_OBJS) src/capi_flash_adku115_user.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+capi-flash-Nallatech: $(COMMON_OBJS) src/capi_flash_nallatech_user.o
+	$(CC) $(CFLAGS) $^ -o $@
 
 install: $(TARGETS)
 	@chmod a+x capi-flash-*
@@ -57,5 +63,5 @@ uninstall:
 
 .PHONY: clean
 clean:
-	@rm -rf $(TARGETS)
+	@rm -rf $(TARGETS) src/*.o
 
