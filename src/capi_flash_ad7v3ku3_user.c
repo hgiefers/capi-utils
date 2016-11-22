@@ -21,7 +21,13 @@ int main (int argc, char *argv[])
 
   struct capiFlash flash;
 
-  CHECK( flash_init(argc, argv, &flash) );
+  uint32_t vsec = 0x404;
+  uint32_t addr_reg = 0x450;
+  uint32_t size_reg = 0x454;
+  uint32_t cntl_reg = 0x458;
+  uint32_t data_reg = 0x45c;
+  CHECK( flash_init(argc, argv, &flash, vsec, addr_reg, size_reg, cntl_reg,
+      data_reg) );
 
   CHECK( flash_wait(&flash) );
   

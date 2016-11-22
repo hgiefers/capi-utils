@@ -16,7 +16,8 @@
 
 #include "common.h"
 
-int flash_init(int argc, char *argv[], struct capiFlash *flash)
+int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
+    uint32_t addr_reg, uint32_t size_reg, uint32_t cntl_reg, uint32_t data_reg)
 {
   if (argc < 3) {
     printf("Usage: capi_flash <rbf_file> <card#>\n\n");
@@ -51,15 +52,15 @@ int flash_init(int argc, char *argv[], struct capiFlash *flash)
 	exit(-1);
   }
   
-  lseek(flash->CFG, 0x904, SEEK_SET);
+  lseek(flash->CFG, vsec, SEEK_SET);
   CHECK( read(flash->CFG, &temp,4) );
   printf("  VSEC Length/VSEC Rev/VSEC ID: 0x%08X\n", temp);
   if ( (temp & 0x08000000) == 0x08000000 ) {
     printf("    Version 0.12\n\n");
-    flash->addr_reg = 0x950;
-    flash->size_reg = 0x954;
-    flash->cntl_reg = 0x958;
-    flash->data_reg = 0x95c;
+    flash->addr_reg = addr_reg;
+    flash->size_reg = size_reg;
+    flash->cntl_reg = cntl_reg;
+    flash->data_reg = data_reg;
   } else {
     printf("    Version 0.10\n\n");
     flash->addr_reg = 0x920;
@@ -182,12 +183,15 @@ int flash_program(struct capiFlash *flash)
 {
   int dat, dif;
   int temp = 0;
+  int cp = 0;
   int ec = CF_SUCCESS;
   flash->eet = flash->spt = time(NULL);
   int num_blocks = flash->num_blocks;
   //# -------------------------------------------------------------------------------
   //# Program Flash                        
   //# -------------------------------------------------------------------------------
+
+  int prtnr = 0;
   if (ec == 0) {
     printf("\n\nProgramming Flash\n");
   
@@ -199,6 +203,37 @@ int flash_program(struct capiFlash *flash)
       if (!(dif)) {
         dat = 0xFFFFFFFF;
       }
+
+      // -------------------------------------------------------------------------------
+      // Poll for flash port to be ready - offset 0x58 bit 12(LE) = 1 means busy
+      // -------------------------------------------------------------------------------
+
+      flash->st = time(NULL);
+      flash->lt = flash->st;
+      cp = 1;
+
+      while (cp == 1) {
+	      lseek(flash->CFG, flash->cntl_reg, SEEK_SET);
+	      CHECK( read(flash->CFG,&temp,4) );
+	      if ( (temp & 0x00001000) == 0x00000000 ) {
+	        cp = 0;
+	      } else {
+	        ++prtnr;
+	      }
+
+	      flash->ct = time(NULL);
+	      if ((flash->ct - flash->lt) > 5) {
+	        printf("...");
+	        flash->lt = flash->ct;
+	      }
+	      if ((flash->ct - flash->st) > 30) {
+	        printf ("\nFAILURE --> Flash Port not ready after 30 seconds\n");
+	        cp = 0;
+	        ec = CF_FLASH_PORT_NOT_READY;
+	        i = (64*1024*(num_blocks+1));
+	      }
+      }
+
       lseek(flash->CFG, flash->data_reg, SEEK_SET);
       CHECK( write(flash->CFG,&dat,4) );
     
@@ -215,7 +250,7 @@ int flash_program(struct capiFlash *flash)
   //# Wait for Flash Program to complete.
   //# -------------------------------------------------------------------------------
   flash->st = flash->lt = time(NULL);
-  int cp = 1;
+  cp = 1;
 
   while (cp == 1) {
     lseek(flash->CFG, flash->cntl_reg, SEEK_SET);
