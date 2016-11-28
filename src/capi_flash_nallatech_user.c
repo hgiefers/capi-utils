@@ -26,8 +26,9 @@ int main (int argc, char *argv[])
   uint32_t size_reg = 0x954;
   uint32_t cntl_reg = 0x958;
   uint32_t data_reg = 0x95c;
+  uint32_t subsys_pci = 0x04af;
   CHECK( flash_init(argc, argv, &flash, vsec, addr_reg, size_reg, cntl_reg,
-      data_reg) );
+      data_reg, subsys_pci) );
 
   CHECK( flash_wait(&flash) );
 

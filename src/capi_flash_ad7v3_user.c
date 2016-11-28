@@ -18,6 +18,7 @@
 
 int main (int argc, char *argv[])
 {
+
   struct capiFlash flash;
 
   uint32_t vsec = 0x404;
@@ -25,13 +26,13 @@ int main (int argc, char *argv[])
   uint32_t size_reg = 0x454;
   uint32_t cntl_reg = 0x458;
   uint32_t data_reg = 0x45c;
-  uint32_t subsys_pci = 0x0608;
+  uint32_t subsys_pci = 0x0604;
   CHECK( flash_init(argc, argv, &flash, vsec, addr_reg, size_reg, cntl_reg,
       data_reg, subsys_pci) );
 
   CHECK( flash_wait(&flash) );
   
-  uint32_t address = 0x0000000;  //user partion.
+  uint32_t address = 0x800000;  //user partion.
   CHECK( flash_setup(&flash, address) );
 
   CHECK( flash_program(&flash) );

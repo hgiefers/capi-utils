@@ -17,7 +17,8 @@
 #include "common.h"
 
 int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
-    uint32_t addr_reg, uint32_t size_reg, uint32_t cntl_reg, uint32_t data_reg)
+    uint32_t addr_reg, uint32_t size_reg, uint32_t cntl_reg, uint32_t data_reg,
+    uint32_t subsys_pci)
 {
   if (argc < 3) {
     printf("Usage: capi_flash <rbf_file> <card#>\n\n");
@@ -39,7 +40,7 @@ int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
     exit(-1);
   }
 
-  int temp,vendor,device;
+  uint32_t temp,vendor,device;
   lseek(flash->CFG, 0, SEEK_SET);
   CHECK( read(flash->CFG, &temp, 4) );
   vendor = temp & 0xFFFF;
@@ -51,7 +52,17 @@ int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
 	printf("Unknown Vendor or Device ID\n");
 	exit(-1);
   }
-  
+  uint32_t subsys;
+  lseek(flash->CFG, 44, SEEK_SET);
+  CHECK( read(flash->CFG, &temp, 4) );
+  subsys = (temp >> 16) & 0xFFFF;
+  printf("Subsys ID: %04X\n", subsys);
+ 
+  if ( (subsys != 0x04af) && (subsys != subsys_pci) ) {
+    printf("Unknown Subsystem ID\n");
+    exit(-1);
+  }
+ 
   lseek(flash->CFG, vsec, SEEK_SET);
   CHECK( read(flash->CFG, &temp,4) );
   printf("  VSEC Length/VSEC Rev/VSEC ID: 0x%08X\n", temp);

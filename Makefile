@@ -37,10 +37,10 @@ all: $(TARGETS)
 %.o: %.c
 	$(CC) $(CFLAGS) $< -c -o $@
 
-capi-flash-AlphaData7v3: $(COMMON_OBJS) src/capi_flash_ad7v3ku3_user.o
+capi-flash-AlphaData7v3: $(COMMON_OBJS) src/capi_flash_ad7v3_user.o
 	$(CC) $(CFLAGS) $^ -o $@
 
-capi-flash-AlphaDataKU60: $(COMMON_OBJS) src/capi_flash_ad7v3ku3_user.o
+capi-flash-AlphaDataKU60: $(COMMON_OBJS) src/capi_flash_adku3_user.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 capi-flash-AlphaDataKU115: $(COMMON_OBJS) src/capi_flash_adku115_user.o
