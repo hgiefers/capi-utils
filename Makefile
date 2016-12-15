@@ -24,7 +24,7 @@ endif
 
 prefix=/usr/local
 
-TARGETS=capi-flash-AlphaData7v3 capi-flash-AlphaDataKU60 capi-flash-AlphaDataKU115 capi-flash-Nallatech
+TARGETS=capi-flash-AlphaData7v3 capi-flash-AlphaDataKU60 capi-flash-AlphaDataKU115 capi-flash-BittwareVU095 capi-flash-Nallatech
 
 COMMON=src/common.c
 COMMON_OBJS=$(COMMON:.c=.o)
@@ -44,6 +44,9 @@ capi-flash-AlphaDataKU60: $(COMMON_OBJS) src/capi_flash_adku3_user.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 capi-flash-AlphaDataKU115: $(COMMON_OBJS) src/capi_flash_adku115_user.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+capi-flash-BittwareVU095: $(COMMON_OBJS) src/capi_flash_bwvu095_user.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 capi-flash-Nallatech: $(COMMON_OBJS) src/capi_flash_nallatech_user.o

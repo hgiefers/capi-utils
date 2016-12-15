@@ -57,12 +57,13 @@ struct capiFlash
   char fpgaBinary_file[CF_FILE_SIZE];
   char cfg_file[CF_FILE_SIZE];
   int addr_reg, size_reg, cntl_reg, data_reg;
+  int block_size;
   int num_blocks;
 };
 
 int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,    
     uint32_t addr_reg, uint32_t size_reg, uint32_t cntl_reg, uint32_t data_reg,
-    uint32_t subsys_pci);
+    uint32_t subsys_pci, int block_size);
 
 int flash_wait(struct capiFlash *flash);
 

@@ -18,7 +18,7 @@
 
 int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
     uint32_t addr_reg, uint32_t size_reg, uint32_t cntl_reg, uint32_t data_reg,
-    uint32_t subsys_pci)
+    uint32_t subsys_pci, int block_size)
 {
   if (argc < 3) {
     printf("Usage: capi_flash <rbf_file> <card#>\n\n");
@@ -79,7 +79,9 @@ int flash_init(int argc, char *argv[], struct capiFlash *flash, uint32_t vsec,
     flash->cntl_reg = 0x928;
     flash->data_reg = 0x92c;
   }
- 
+
+  flash->block_size = block_size; 
+
   // Set stdout to autoflush
   setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -140,9 +142,9 @@ int flash_setup(struct capiFlash *flash, uint32_t user_partition)
   } else {
     fsize = tempstat.st_size;
   }
-  num_blocks = flash->num_blocks = fsize / (64 * 1024 *4);
+  num_blocks = flash->num_blocks = fsize / (flash->block_size * 4);
   printf("Programming User Partition with %s\n", flash->fpgaBinary_file);
-  printf("  Program ->  for Size: %d in blocks (32K Words or 128K Bytes)\n\n",
+  printf("  Program ->  for Size: %d in blocks \n\n",
       num_blocks);
 
   flash->set = time(NULL);  
@@ -209,7 +211,7 @@ int flash_program(struct capiFlash *flash)
     int bc = 0;
     int i;
     printf("Writing Block: %d        \r", bc);
-    for(i=0; i<(64*1024*(num_blocks+1)); i++) {
+    for(i=0; i<(flash->block_size*(num_blocks+1)); i++) {
       dif = read(flash->fpgaBinary,&dat,4);
       if (!(dif)) {
         dat = 0xFFFFFFFF;
@@ -241,7 +243,7 @@ int flash_program(struct capiFlash *flash)
 	        printf ("\nFAILURE --> Flash Port not ready after 30 seconds\n");
 	        cp = 0;
 	        ec = CF_FLASH_PORT_NOT_READY;
-	        i = (64*1024*(num_blocks+1));
+	        i = (flash->block_size*(num_blocks+1));
 	      }
       }
 
@@ -337,7 +339,7 @@ int flash_verify(struct capiFlash *flash)
 
     int i, bc = 0;
     uint32_t raddress = flash->address;
-    for(i=0; i<(64*1024*(flash->num_blocks+1)); i++) {
+    for(i=0; i<(flash->block_size*(flash->num_blocks+1)); i++) {
 
       dif = read(flash->fpgaBinary,&edat,4);
       if (!(dif)) {
@@ -397,7 +399,7 @@ int flash_verify(struct capiFlash *flash)
         printf("Data Miscompare @: %08x --> %08x expected %08x\r",ma, dat, edat);
       }
   
-      if (((i+1) % (64*1024)) == 0) {
+      if (((i+1) % (flash->block_size)) == 0) {
         printf("Reading Block: %d        \r", bc);
         bc++;
       }
