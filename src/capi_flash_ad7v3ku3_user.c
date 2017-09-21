@@ -435,7 +435,7 @@ int main (int argc, char *argv[])
   close(RBF);
   close(CFG);
 
-  return 0;
+  return ec;
 
 }
 
