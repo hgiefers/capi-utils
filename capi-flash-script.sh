@@ -73,7 +73,7 @@ shift $((OPTIND-1))
 ulimit -c unlimited
 
 # stop on non-zero response
-set -e                     
+set -eE                     
 
 # output formatting
 if tty -s          
