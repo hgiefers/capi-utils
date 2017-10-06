@@ -262,4 +262,4 @@ printf "\nMake sure to use ${bold}/dev/cxl/afu$c.0d${normal} in your host applic
 printf "#define DEVICE \"/dev/cxl/afu$c.0d\"\n"
 printf "struct cxl_afu_h *afu = cxl_afu_open_dev ((char*) (DEVICE));\n\n"
 
-rm -rf "/var/cxl/capi-flash-script.lock
+rm -rf /var/cxl/capi-flash-script.lock
