@@ -97,7 +97,7 @@ fi
 
 ###################################################
 # Check if rafu is set and non-empty
-if [ -z ${rafu+x} ]
+if [ ! -z ${rafu+x} ]
 then
   # make sure the input file exists
   if [[ ! -e "/sys/class/cxl/${rafu}.0/reset" ]]; then           
