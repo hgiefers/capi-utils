@@ -41,7 +41,7 @@ function usage() {
 }                                                                   
 
 # Parse any options given on the command line
-while getopts ":C:fVh" opt; do               
+while getopts ":C:R:fVh" opt; do               
   case ${opt} in                             
       C)                                     
       card=$OPTARG                           
