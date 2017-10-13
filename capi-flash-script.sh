@@ -25,6 +25,7 @@ card=-1
 function usage() {                   
   echo "Usage:  sudo ${program} [OPTIONS]"
   echo "    [-C <card>] card to flash."   
+  echo "    [-R <afu>] only reset afu and exit."   
   echo "    [-f] force execution without asking."
   echo "         warning: use with care e.g. for automation."
   echo "    [-V] Print program version (${version})"         
@@ -44,7 +45,10 @@ while getopts ":C:fVh" opt; do
   case ${opt} in                             
       C)                                     
       card=$OPTARG                           
-      ;;                                     
+      ;;                
+      R)                                     
+      rafu=$OPTARG                           
+      ;;           
       f)                                     
       force=1                                
       ;;                                     
@@ -90,6 +94,21 @@ if [[ $EUID -ne 0 ]]; then
   printf "${bold}ERROR:${normal} This script should run as root (${EUID})\n"
 #  exit 1                                                                   
 fi                                                                          
+
+###################################################
+# Check if rafu is set and non-empty
+if [ -z ${rafu+x} ]
+then
+  # make sure the input file exists
+  if [[ ! -e "/sys/class/cxl/${rafu}.0/reset" ]]; then           
+    printf "${bold}ERROR:${normal} /sys/class/cxl/${rafu}.0/reset not found\n"
+    exit 1
+  fi
+  echo 1 > /sys/class/cxl/${rafu}.0/reset
+  exit 0
+fi
+###################################################
+
 
 # make sure an input argument is provided
 if [ $# -eq 0 ]; then                    
