@@ -143,7 +143,11 @@ int main (int argc, char *argv[])
   off_t fsize;
   struct stat tempstat;
   int num_blocks;
-  address = 0x800000;  //user partion.
+  #ifdef FACTORY_FLASH
+    address = 0x000000;  //factory partion.
+  #else
+    address = 0x800000;  //user partion.
+  #fi
   if (stat(rbf_file, &tempstat) != 0) {
     fprintf(stderr, "Cannot determine size of %s: %s\n", rbf_file, strerror(errno));
     exit(-1);
