@@ -40,11 +40,17 @@ capi-flash-AlphaData7v3: src/capi_flash_ad7v3ku3_user.c
 	$(CC) $(CFLAGS) $< -o $@
 
 capi-flash-AlphaDataKU60: src/capi_flash_ad7v3ku3_user.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -U FACTORY_FLASH $< -o $@
 
 capi-flash-NallatechKU60: src/capi_flash_ad7v3ku3_user.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -U FACTORY_FLASH $< -o $@
 
+capi-flash-AlphaDataKU60-factory: src/capi_flash_ad7v3ku3_user.c
+	$(CC) $(CFLAGS) -D FACTORY_FLASH $< -o $@
+
+capi-flash-NallatechKU60-factory: src/capi_flash_ad7v3ku3_user.c
+	$(CC) $(CFLAGS) -D FACTORY_FLASH $< -o $@
+	
 capi-flash-AlphaDataKU115: src/capi_flash_adku115_user.c
 	$(CC) $(CFLAGS) $< -o $@
 
