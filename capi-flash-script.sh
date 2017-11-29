@@ -16,7 +16,10 @@
 #
 # Usage: sudo capi-flash-script.sh <path-to-bit-file>
 
-version=1.0
+# get pwd
+pwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $pwd/../lib/capi-utils/capi-utils-common.sh
+
 force=0
 program=`basename "$0"`
 card=-1
@@ -140,14 +143,7 @@ else
   printf "${bold}ERROR:${normal} Another instance of this script is running\n"
   exit 1
 fi
-#if ! mkdir /var/cxl/capi-flash-script.lock 2>/dev/null; then
-#  printf "${bold}ERROR:${normal} Another instance of this script is running\n"
-#  exit 1
-#fi
-trap 'rm -rf "/var/cxl/capi-flash-script.lock"' 0
-
-# get pwd
-pwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+trap 'rm -rf "/var/cxl/capi-flash-script.lock"' 0 1 2 9 15
 
 # get number of cards in system
 n=`ls -d /sys/class/cxl/card* | awk -F"/sys/class/cxl/card" '{ print $2 }' | wc -w`
@@ -182,7 +178,7 @@ while read d; do
       fpga_type[$i]=${parse_info[2]}
       printf "%-7s %-30s %-29s %-20s %s\n" "card$i" "${line:6}" "${f:0:29}" "${f:30:20}" "${f:51}"
     fi
-  done < "$pwd/../capi-utils/psl-devices"
+  done < "$pwd/../lib/capi-utils/psl-devices"
   i=$[$i+1]
 done < <(lspci -d "1014":"477" )
 
@@ -237,48 +233,17 @@ printf "\n"
 printf "%-29s %-20s %s\n" "$(date)" "$(logname)" $1 > /var/cxl/card$c
 
 # Check if lowlevel flash utility is existing and executable
-if [ ! -x $pwd/../capi-utils/capi-flash-${board_vendor[$c]} ]; then
+if [ ! -x $pwd/../lib/capi-utils/capi-flash-${board_vendor[$c]} ]; then
   printf "${bold}ERROR:${normal} Utility capi-flash-${board_vendor[$c]} not found!\n"
   exit 1
 fi
 
-# flash card with corresponding binary
-$pwd/../capi-utils/capi-flash-${board_vendor[$c]} $1 $c || printf "${bold}ERROR:${normal} Something went wrong\n"
+# Reset to card/flash registers to known state (factory) 
+reset_card $c factory "Preparing card for flashing"
 
-# eeh_max_freezes: default number of resets allowed per PCI device per
-# hour. Backup/restore this counter, since if card is rest too often,
-# it would be fenced away.
-if [ -f /sys/kernel/debug/powerpc/eeh_max_freezes ]; then
-  eeh_max_freezes=`cat /sys/kernel/debug/powerpc/eeh_max_freezes`
-  echo 100000 > /sys/kernel/debug/powerpc/eeh_max_freezes
-fi
+# flash card with corresponding binary
+$pwd/../lib/capi-utils/capi-flash-${board_vendor[$c]} $1 $c || printf "${bold}ERROR:${normal} Something went wrong\n"
 
 # reset card
-printf "Preparing to reset card\n"
-sleep 5
+reset_card $c user
 
-printf "Resetting card\n"
-printf user > /sys/class/cxl/card$c/load_image_on_perst
-printf 1 > /sys/class/cxl/card$c/reset
-sleep 5
-while true; do
-  if [[ `ls -d /sys/class/cxl/card* 2> /dev/null | awk -F"/sys/class/cxl/card" '{ print $2 }' | wc -w` == "$n" ]]; then
-    break
-  fi
-  printf "."
-  sleep 1
-done
-printf "\n"
-
-printf "Reset complete\n"
-
-if [ -f /sys/kernel/debug/powerpc/eeh_max_freezes ]; then
-  echo $eeh_max_freezes > /sys/kernel/debug/powerpc/eeh_max_freezes
-fi
-
-# remind afu to use in host application
-printf "\nMake sure to use ${bold}/dev/cxl/afu$c.0d${normal} in your host application;\n\n"
-printf "#define DEVICE \"/dev/cxl/afu$c.0d\"\n"
-printf "struct cxl_afu_h *afu = cxl_afu_open_dev ((char*) (DEVICE));\n\n"
-
-rm -rf /var/cxl/capi-flash-script.lock
