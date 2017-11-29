@@ -30,7 +30,7 @@ endif
 prefix=/usr/local
 install_point=lib/capi-utils
 
-TARGETS=capi-flash-AlphaData7v3 capi-flash-AlphaDataKU60 capi-flash-NallatechKU60 capi-flash-AlphaDataKU115 capi-flash-SemptianNSA121B capi-flash-Nallatech
+TARGETS=capi-flash-AlphaData7v3 capi-flash-AlphaDataKU60 capi-flash-NallatechKU60 capi-flash-AlphaDataKU115 capi-flash-Nallatech
 
 install_files = $(TARGETS) capi-utils-common.sh capi-flash-script.sh capi-reset.sh psl-devices
 
