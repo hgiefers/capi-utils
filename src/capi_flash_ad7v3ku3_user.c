@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
     address = 0x000000;  //factory partion.
   #else
     address = 0x800000;  //user partion.
-  #fi
+  #endif
   if (stat(rbf_file, &tempstat) != 0) {
     fprintf(stderr, "Cannot determine size of %s: %s\n", rbf_file, strerror(errno));
     exit(-1);
